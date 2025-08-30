@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteTask, toggleComplete } from "../features/tasks/taskSlice";
+import { deleteTask, toggleComplete } from "../Store/features/tasks/taskSlice";
 import TaskModal from "./TaskModal"; // New Component
 
 const TaskList = () => {

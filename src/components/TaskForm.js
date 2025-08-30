@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addTask } from "../features/tasks/taskSlice";
+import { addTask } from "../Store/features/tasks/taskSlice";
+import { nanoid } from "nanoid";
 
 const AddTask = () => {
   const dispatch = useDispatch();
@@ -8,13 +9,13 @@ const AddTask = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
-  const [subTasks, setSubTasks] = useState([{ title: "", description: "" }]);
+  const [subTasks, setSubTasks] = useState([{  id: nanoid(), title: "", description: "" }]);
 
   // Add new empty subtask input fields
   const handleAddSubTask = () => {
-    setSubTasks([...subTasks, { title: "", description: "" }]);
+    setSubTasks([...subTasks, {  id: nanoid(), title: "", description: "" }]);
   };
-
+console.log(subTasks);
   // Update subtask values dynamically
   const handleSubTaskChange = (index, field, value) => {
     const updated = [...subTasks];
@@ -29,7 +30,7 @@ const AddTask = () => {
 
     dispatch(
       addTask({
-        id: Date.now(),
+          id: nanoid(), //nano id replaced
         title,
         description,
         date,
@@ -42,7 +43,7 @@ const AddTask = () => {
     setTitle("");
     setDescription("");
     setDate("");
-    setSubTasks([{ title: "", description: "" }]);
+    setSubTasks([{  id: nanoid(), title: "", description: "" }]);
   };
 
   return (
@@ -82,8 +83,9 @@ const AddTask = () => {
           {/* Subtasks */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-indigo-400">Subtasks</h3>
-            {subTasks.map((subTask, index) => (
+            {subTasks.map((subTask,index ) => (
               <div key={index} className="flex flex-col sm:flex-row gap-3">
+                
                 <input
                   type="text"
                   placeholder="Subtask Title"
@@ -105,7 +107,7 @@ const AddTask = () => {
               </div>
             ))}
 
-            {/* Add Subtask Button */}
+      
             <button
               type="button"
               onClick={handleAddSubTask}
@@ -115,7 +117,7 @@ const AddTask = () => {
             </button>
           </div>
 
-          {/* Submit Button */}
+      
           <div className="flex justify-center">
             <button
               type="submit"
