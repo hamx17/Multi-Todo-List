@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addTask } from "../Store/features/tasks/taskSlice";
+import { addTask } from "../store/features/tasks/taskSlice";
 import { nanoid } from "nanoid";
+
 
 const AddTask = () => {
   const dispatch = useDispatch();
@@ -9,12 +10,22 @@ const AddTask = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
-  const [subTasks, setSubTasks] = useState([{  id: nanoid(), title: "", description: "" }]);
+  const [subTasks, setSubTasks] = useState([{  id: nanoid(), title: "", description: "",completed: false  }]);
 
   // Add new empty subtask input fields
-  const handleAddSubTask = () => {
-    setSubTasks([...subTasks, {  id: nanoid(), title: "", description: "" }]);
-  };
+ const handleAddSubTask = () => {
+  // Get the last subtask
+  const lastSubTask = subTasks[subTasks.length - 1];
+
+  // Check if last subtask fields are empty
+  if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
+    alert(" Please fill in the current subtask title and description before adding a new one.");
+    return;
+  }
+
+  // Add a new empty subtask if the last one is filled
+  setSubTasks([...subTasks, { id: nanoid(), title: "", description: "", completed: false }]);
+};
 console.log(subTasks);
   // Update subtask values dynamically
   const handleSubTaskChange = (index, field, value) => {
@@ -26,7 +37,7 @@ console.log(subTasks);
   // Submit new task
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+   
 
     dispatch(
       addTask({
@@ -35,7 +46,7 @@ console.log(subTasks);
         description,
         date,
         completed: false,
-        subTasks: subTasks.filter((st) => st.title.trim() !== ""),
+        subTasks: subTasks.filter((st) => st.title.trim() !== "").map((st) => ({ ...st, completed: false })), 
       })
     );
 
@@ -43,7 +54,7 @@ console.log(subTasks);
     setTitle("");
     setDescription("");
     setDate("");
-    setSubTasks([{  id: nanoid(), title: "", description: "" }]);
+    setSubTasks([{  id: nanoid(), title: "", description: "",completed: false  }]);
   };
 
   return (
@@ -61,6 +72,7 @@ console.log(subTasks);
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            required
           />
 
           {/* Description */}
@@ -69,6 +81,7 @@ console.log(subTasks);
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[120px]"
+            required
           />
 
           {/* Date */}
@@ -78,6 +91,7 @@ console.log(subTasks);
             onChange={(e) => setDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
             className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            required
           />
 
           {/* Subtasks */}

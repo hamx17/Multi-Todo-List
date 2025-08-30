@@ -20,8 +20,17 @@ const taskSlice = createSlice({
         task.id === action.payload.id ? { ...task, ...action.payload } : task
       );
     },
+     toggleSubTask: (state, action) => {
+      const { taskId, subTaskId } = action.payload;
+      const task = state.find((t) => t.id === taskId);
+      if (task) {
+        task.subTasks = task.subTasks.map((sub) =>
+          sub.id === subTaskId ? { ...sub, completed: !sub.completed } : sub
+        );
+      }
+    },
   },
 });
 
-export const { addTask, deleteTask, toggleComplete,updateTask } = taskSlice.actions;
+export const { addTask, deleteTask, toggleComplete,updateTask,toggleSubTask } = taskSlice.actions;
 export default taskSlice.reducer;

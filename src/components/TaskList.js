@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteTask, toggleComplete } from "../Store/features/tasks/taskSlice";
-import TaskModal from "./TaskModal"; // New Component
+import { deleteTask, toggleComplete, } from "../store/features/tasks/taskSlice";
+import TaskModal from "./TaskModal"; 
 
 const TaskList = () => {
   const tasks = useSelector((state) => state.tasks);
@@ -17,6 +17,14 @@ const TaskList = () => {
     if (filter === "COMPLETED") return task.completed;
     return true;
   });
+  const deletehandle = (taskId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this task? This action cannot be undone."
+    );
+    if (confirmDelete) {
+      dispatch(deleteTask(taskId));
+    }
+  };
 
   return (
     <div>
@@ -83,7 +91,7 @@ const TaskList = () => {
 
                   {/* Delete Button */}
                   <button
-                    onClick={() => dispatch(deleteTask(task.id))}
+                    onClick={() => deletehandle(task.id)}
                     className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-1 rounded-lg shadow-md"
                   >
                     Delete
@@ -91,31 +99,47 @@ const TaskList = () => {
                 </div>
               </div>
 
-              {task.subTasks.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-indigo-400 font-semibold mb-2">
-                    Subtasks:
-                  </h4>
-                  <ul className="list-disc pl-6 space-y-1">
-                    {task.subTasks.map((sub, i) => (
-                      <li key={i}>
-                        <p
-                          className={`font-semibold ${
-                            task.completed
-                              ? "line-through text-gray-500"
-                              : "text-white"
-                          }`}
-                        >
-                          {sub.title}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          {sub.description}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+             {task.subTasks.length > 0 && (
+  <div className="mt-4">
+    <h4 className="text-indigo-400 font-semibold mb-2">Subtasks:</h4>
+    <ul className="list-disc pl-6 space-y-2">
+      {task.subTasks.map((sub, i) => (
+        <li key={i} className="flex items-center gap-3">
+          {/* Toggle Subtask Complete Button */}
+          <h1
+           
+            className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-300 shadow-md
+              ${sub.completed
+                ? "bg-green-600 text-white hover:bg-green-700"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+          >
+            {sub.completed ? "Completed" : "Not Completed"}
+          </h1>
+
+          {/* Subtask Text */}
+          <div>
+            <p
+              className={`font-semibold ${
+                sub.completed ? "line-through text-gray-500" : "text-white"
+              }`}
+            >
+              {sub.title}
+            </p>
+            <p
+              className={`text-sm ${
+                sub.completed ? "line-through text-gray-500" : "text-gray-400"
+              }`}
+            >
+              {sub.description}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
             </div>
           ))
         )}
