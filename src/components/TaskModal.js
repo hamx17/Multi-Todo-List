@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { updateTask, toggleSubTask, updateTaskThunk, toggleSubTaskThunk } from "../store/features/tasks/thunkSlice";
+import { updateTaskThunk, toggleSubTaskThunk } from "../store/features/tasks/thunkSlice";
 
 const TaskModal = ({ task, onClose }) => {
   const dispatch = useDispatch();
@@ -31,7 +31,22 @@ const TaskModal = ({ task, onClose }) => {
   };
 
   const handleSave = () => {
+    if (!editedTask.title.trim() || !editedTask.description.trim()) {
+      toast.error("⚠️ Please fill in all fields before saving!", {
+        position: "top-center",
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
     dispatch(updateTaskThunk({ id: updatedTask.id, ...editedTask }));
+    toast.success("✅ Task updated successfully!", {
+      position: "top-center",
+      autoClose: 2000,
+      theme: "colored",
+    });
+
     setIsEditing(false);
     onClose();
   };
@@ -48,80 +63,88 @@ const TaskModal = ({ task, onClose }) => {
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
     >
       <div
         ref={modalRef}
-        className="bg-gray-900 rounded-2xl shadow-lg p-6 w-[500px] max-w-full relative border border-gray-700"
+        className="bg-white rounded-2xl shadow-xl p-6 w-[500px] max-w-full relative border border-gray-200"
       >
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
         >
           ✕
         </button>
 
-        <h2 className="text-2xl font-bold text-white mb-4">
-          {isEditing ? "Edit Task" : `TASK: ${updatedTask.title}`}
+        {/* Heading */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {isEditing ? "Edit Task" : `Task: ${updatedTask.title}`}
         </h2>
 
+        {/* Title */}
         {isEditing ? (
           <input
             type="text"
             name="title"
             value={editedTask.title}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white mb-3 border border-gray-600"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 text-gray-800 mb-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         ) : (
-          <h3 className="text-lg text-white">{updatedTask.title}</h3>
+          <h3 className="text-lg text-gray-800 font-semibold">{updatedTask.title}</h3>
         )}
 
-        <h1 className="text-gray-300">Description:</h1>
+        {/* Description */}
+        <h1 className="text-gray-700 mt-3">Description:</h1>
         {isEditing ? (
           <textarea
             name="description"
             value={editedTask.description}
             onChange={handleChange}
             rows="3"
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white mb-3 border border-gray-600"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 text-gray-800 mb-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         ) : (
-          <p className="text-gray-300 mb-3">{updatedTask.description}</p>
+          <p className="text-gray-600 mb-3">{updatedTask.description}</p>
         )}
 
+        {/* Due Date */}
         {isEditing ? (
           <input
             type="date"
             name="date"
             value={editedTask.date}
             onChange={handleChange}
-            className="w-full px-3 py-2 rounded-lg bg-gray-800 text-white mb-4 border border-gray-600"
+            className="w-full px-3 py-2 rounded-lg bg-gray-100 text-gray-800 mb-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         ) : (
-          <p className="text-indigo-400 mb-4">Due Date: {updatedTask.date}</p>
+          <p className="text-blue-600 mb-4 font-medium">
+            Due Date: {updatedTask.date}
+          </p>
         )}
 
+        {/* Subtasks */}
         {updatedTask.subTasks.length > 0 ? (
           <>
-            <h3 className="text-lg font-semibold text-indigo-400 mb-2">
+            <h3 className="text-lg font-semibold text-blue-600 mb-2">
               Subtasks:
             </h3>
             <ul className="space-y-2">
               {updatedTask.subTasks.map((sub) => (
                 <li
                   key={sub.id}
-                  className="bg-gray-800 px-3 py-2 rounded-lg shadow-sm flex items-center justify-between"
+                  className="bg-gray-100 px-3 py-2 rounded-lg shadow-sm flex items-center justify-between border border-gray-300"
                 >
                   <div>
                     <p
-                      className={`text-white font-semibold ${
+                      className={`text-gray-800 font-semibold ${
                         sub.completed ? "line-through text-gray-400" : ""
                       }`}
                     >
                       {sub.title}
                     </p>
-                    <p className="text-gray-400 text-sm">{sub.description}</p>
+                    <p className="text-gray-600 text-sm">{sub.description}</p>
                   </div>
 
                   <span
@@ -133,10 +156,10 @@ const TaskModal = ({ task, onClose }) => {
                         })
                       )
                     }
-                    className={`cursor-pointer px-3 py-1 rounded-lg text-sm font-semibold ${
+                    className={`cursor-pointer px-3 py-1 rounded-lg text-sm font-semibold transition-all ${
                       sub.completed
-                        ? "bg-green-600 text-white"
-                        : "bg-red-600 text-white"
+                        ? "bg-green-500 text-white hover:bg-green-600"
+                        : "bg-red-500 text-white hover:bg-red-600"
                     }`}
                   >
                     {sub.completed ? "Completed" : "Not Completed"}
@@ -146,15 +169,16 @@ const TaskModal = ({ task, onClose }) => {
             </ul>
           </>
         ) : (
-          <p className="text-gray-400 italic">No subtasks available.</p>
+          <p className="text-gray-500 italic">No subtasks available.</p>
         )}
 
+        {/* Buttons */}
         <div className="mt-6 flex justify-end space-x-3">
           {isEditing ? (
             <>
               <button
                 onClick={() => setIsEditing(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg"
               >
                 Cancel
               </button>

@@ -5,17 +5,19 @@ import AddForm from "./pages/AddForm";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 const App = () => {
   return (
     <Router>
-      <div className="w-full bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 text-white min-h-screen">
-        <h2 className="text-3xl font-bold text-center py-6">Multy Todo List</h2>
+         <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900">
+        <h2 className="text-3xl font-bold text-center py-6 text-blue-700 drop-shadow-md">
+
+          Multi Todo List
+        </h2>
         <Routes>
-          <Route path="/" element={<Home/>} />
+          <Route path="/" element={<Home />} />
           <Route path="/add" element={<AddForm />} />
         </Routes>
-          <ToastContainer
+        <ToastContainer
           position="top-right"
           autoClose={3000}
           hideProgressBar={false}
@@ -29,7 +31,6 @@ const App = () => {
         />
       </div>
     </Router>
-    
   );
 };
 

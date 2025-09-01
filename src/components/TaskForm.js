@@ -4,9 +4,10 @@ import { addTaskThunk } from "../store/features/tasks/thunkSlice";
 import { nanoid } from "nanoid";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
 const AddTask = () => {
   const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -15,33 +16,28 @@ const AddTask = () => {
     { id: nanoid(), title: "", description: "", completed: false },
   ]);
 
-  // Add new empty subtask input fields
   const handleAddSubTask = () => {
-    const lastSubTask = subTasks[subTasks.length - 1];
-  
-if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
-  toast.warning("⚠️ Please fill in the current subtask title and description before adding a new one.", {
-    position: "top-center",
-    autoClose: 2000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    theme: "colored",
-  });
-  return;
-}
-    setSubTasks([...subTasks, { id: nanoid(), title: "", description: "", completed: false }]);
+    const last = subTasks[subTasks.length - 1];
+    if (last.title.trim() === "" || last.description.trim() === "") {
+      toast.warning("⚠️ Fill current subtask before adding another one.", {
+        position: "top-center",
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+    setSubTasks([
+      ...subTasks,
+      { id: nanoid(), title: "", description: "", completed: false },
+    ]);
   };
 
-  // Update subtask values dynamically
   const handleSubTaskChange = (index, field, value) => {
     const updated = [...subTasks];
     updated[index][field] = value;
     setSubTasks(updated);
   };
 
-  // Submit new task using thunk
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -56,25 +52,25 @@ if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
         .map((st) => ({ ...st, completed: false })),
     };
 
-    dispatch(addTaskThunk(newTask)); 
-     toast.success("✅ Task added successfully!", {
+    dispatch(addTaskThunk(newTask));
+    toast.success("✅ Task added successfully!", {
       position: "top-right",
       autoClose: 3000,
       theme: "colored",
-    });// 🔹 Use thunk instead of reducer
+    });
 
-    // Reset form fields
     setTitle("");
     setDescription("");
     setDate("");
     setSubTasks([{ id: nanoid(), title: "", description: "", completed: false }]);
-   navigate("/")
+
+    navigate("/");
   };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 flex justify-center">
-      <div className="w-full max-w-3xl bg-gray-800 bg-opacity-60 backdrop-blur-lg border border-gray-700 p-6 sm:p-8 rounded-2xl shadow-xl">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-white">
+      <div className="w-full max-w-3xl bg-gray-50 border border-gray-200 p-6 sm:p-8 rounded-xl shadow-lg">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-black">
           Add New Task
         </h2>
 
@@ -84,7 +80,7 @@ if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
             placeholder="Task Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
             required
           />
 
@@ -92,7 +88,7 @@ if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
             placeholder="Task Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[120px]"
+            className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[120px]"
             required
           />
 
@@ -101,28 +97,32 @@ if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
-            className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
             required
           />
 
           {/* Subtasks */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-indigo-400">Subtasks</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Subtasks</h3>
             {subTasks.map((subTask, index) => (
               <div key={subTask.id} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   placeholder="Subtask Title"
                   value={subTask.title}
-                  onChange={(e) => handleSubTaskChange(index, "title", e.target.value)}
-                  className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  onChange={(e) =>
+                    handleSubTaskChange(index, "title", e.target.value)
+                  }
+                  className="flex-1 bg-white border border-gray-300 text-black px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
                 <input
                   type="text"
                   placeholder="Subtask Description"
                   value={subTask.description}
-                  onChange={(e) => handleSubTaskChange(index, "description", e.target.value)}
-                  className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  onChange={(e) =>
+                    handleSubTaskChange(index, "description", e.target.value)
+                  }
+                  className="flex-1 bg-white border border-gray-300 text-black px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
               </div>
             ))}
@@ -130,16 +130,16 @@ if (lastSubTask.title.trim() === "" || lastSubTask.description.trim() === "") {
             <button
               type="button"
               onClick={handleAddSubTask}
-              className="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-2 rounded-lg font-medium transition-all duration-300"
+              className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-black py-2 rounded-lg font-medium shadow-sm transition"
             >
-              Add Subtask
+              + Add Subtask
             </button>
           </div>
 
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white py-3 rounded-lg font-semibold transition-all duration-300"
+              className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-lg font-semibold shadow-md transition-all duration-300"
             >
               Add Task
             </button>
