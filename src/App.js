@@ -1,15 +1,35 @@
 import React from "react";
-import TaskForm from "./components/TaskForm";
-import TaskList from "./components/TaskList";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import AddForm from "./pages/AddForm";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const App = () => {
   return (
-      <div className="w-full bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 text-white py-10 px-6">
-           <h2 className="text-3xl font-bold mb-6 text-center"> TODO MULTY LIST</h2>
-     
-      <TaskForm />
-      <TaskList />
-    </div>
+    <Router>
+      <div className="w-full bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 text-white min-h-screen">
+        <h2 className="text-3xl font-bold text-center py-6">Multy Todo List</h2>
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/add" element={<AddForm />} />
+        </Routes>
+          <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+      </div>
+    </Router>
+    
   );
 };
 

@@ -1,9 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchTasks } from "./thunkSlice";
+import {
+  addTaskThunk,
+  deleteTaskThunk,
+  toggleCompleteThunk,
+  updateTaskThunk,
+  toggleSubTaskThunk,
+} from "./thunkSlice";
 
 const initialState = {
   tasks: [],
-  taskList:[],
   status: "idle",
   error: null,
 };
@@ -11,65 +16,25 @@ const initialState = {
 const taskSlice = createSlice({
   name: "tasks",
   initialState,
-  reducers: {
-    addTask: (state, action) => {
-      state.tasks.push({ ...action.payload, completed: false, subTasks: [] });
-    },
-
-    deleteTask: (state, action) => {
-      state.tasks = state.tasks.filter((task) => task.id !== action.payload);
-    },
-
-    toggleComplete: (state, action) => {
-      const task = state.tasks.find((t) => t.id === action.payload);
-      if (task) {
-        task.completed = !task.completed;
-      }
-    },
-
-    updateTask: (state, action) => {
-      const index = state.tasks.findIndex((t) => t.id === action.payload.id);
-      if (index !== -1) {
-        state.tasks[index] = { ...state.tasks[index], ...action.payload };
-      }
-    },
-
-    toggleSubTask: (state, action) => {
-      const { taskId, subTaskId } = action.payload;
-      const task = state.tasks.find((t) => t.id === taskId);
-      if (task && task.subTasks) {
-        task.subTasks = task.subTasks.map((sub) =>
-          sub.id === subTaskId
-            ? { ...sub, completed: !sub.completed }
-            : sub
-        );
-      }
-    },
-  },
-
+  reducers: {}, 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTasks.pending, (state) => {
-        state.status = "loading";
+      .addCase(addTaskThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
       })
-      .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.taskList = action.payload;
-        console.log(state.taskList)
+      .addCase(deleteTaskThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
       })
-      .addCase(fetchTasks.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
+      .addCase(toggleCompleteThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
+      })
+      .addCase(updateTaskThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
+      })
+      .addCase(toggleSubTaskThunk.fulfilled, (state, action) => {
+        state.tasks = action.payload;
       });
   },
 });
-
-export const {
-  addTask,
-  deleteTask,
-  toggleComplete,
-  updateTask,
-  toggleSubTask,
-} = taskSlice.actions;
 
 export default taskSlice.reducer;

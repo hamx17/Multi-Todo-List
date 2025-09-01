@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateTask, toggleSubTask } from "../store/features/tasks/taskSlice";
+import { toast } from "react-toastify";
+import { updateTask, toggleSubTask, updateTaskThunk, toggleSubTaskThunk } from "../store/features/tasks/thunkSlice";
 
 const TaskModal = ({ task, onClose }) => {
   const dispatch = useDispatch();
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
 
-  // ✅ Always fetch the latest updated task from Redux
+  // ✅ Always get updated task from store
   const updatedTask = useSelector((state) =>
-    state.tasks.find((t) => t.id === task.id)
+    state.tasks.tasks.find((t) => t.id === task.id)
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -18,7 +19,6 @@ const TaskModal = ({ task, onClose }) => {
     description: updatedTask?.description || "",
     date: updatedTask?.date || "",
   });
-
 
   useEffect(() => {
     if (overlayRef.current) {
@@ -31,7 +31,7 @@ const TaskModal = ({ task, onClose }) => {
   };
 
   const handleSave = () => {
-    dispatch(updateTask({ id: updatedTask.id, ...editedTask }));
+    dispatch(updateTaskThunk({ id: updatedTask.id, ...editedTask }));
     setIsEditing(false);
     onClose();
   };
@@ -41,9 +41,9 @@ const TaskModal = ({ task, onClose }) => {
   return (
     <div
       ref={overlayRef}
-      tabIndex={0}  
+      tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === "Escape") onClose(); 
+        if (e.key === "Escape") onClose();
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -54,7 +54,6 @@ const TaskModal = ({ task, onClose }) => {
         ref={modalRef}
         className="bg-gray-900 rounded-2xl shadow-lg p-6 w-[500px] max-w-full relative border border-gray-700"
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
@@ -66,7 +65,6 @@ const TaskModal = ({ task, onClose }) => {
           {isEditing ? "Edit Task" : `TASK: ${updatedTask.title}`}
         </h2>
 
-        {/* Title */}
         {isEditing ? (
           <input
             type="text"
@@ -79,7 +77,6 @@ const TaskModal = ({ task, onClose }) => {
           <h3 className="text-lg text-white">{updatedTask.title}</h3>
         )}
 
-        {/* Description */}
         <h1 className="text-gray-300">Description:</h1>
         {isEditing ? (
           <textarea
@@ -93,7 +90,6 @@ const TaskModal = ({ task, onClose }) => {
           <p className="text-gray-300 mb-3">{updatedTask.description}</p>
         )}
 
-        {/* Date */}
         {isEditing ? (
           <input
             type="date"
@@ -106,7 +102,6 @@ const TaskModal = ({ task, onClose }) => {
           <p className="text-indigo-400 mb-4">Due Date: {updatedTask.date}</p>
         )}
 
-        {/* Subtasks */}
         {updatedTask.subTasks.length > 0 ? (
           <>
             <h3 className="text-lg font-semibold text-indigo-400 mb-2">
@@ -129,11 +124,10 @@ const TaskModal = ({ task, onClose }) => {
                     <p className="text-gray-400 text-sm">{sub.description}</p>
                   </div>
 
-             
                   <span
                     onClick={() =>
                       dispatch(
-                        toggleSubTask({
+                        toggleSubTaskThunk({
                           taskId: updatedTask.id,
                           subTaskId: sub.id,
                         })
@@ -155,7 +149,6 @@ const TaskModal = ({ task, onClose }) => {
           <p className="text-gray-400 italic">No subtasks available.</p>
         )}
 
-        {/* Buttons */}
         <div className="mt-6 flex justify-end space-x-3">
           {isEditing ? (
             <>
