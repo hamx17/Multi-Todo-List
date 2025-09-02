@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route ,Navigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 import Home from "./pages/Home";
 import AddForm from "./pages/AddForm";
 import { ToastContainer } from "react-toastify";
@@ -10,58 +12,68 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 
-
-
 const App = () => {
-   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user")));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Listen for localStorage changes in other tabs
+  // Sync Firebase auth state
   useEffect(() => {
-    const handleStorageChange = () => {
-      setUser(JSON.parse(localStorage.getItem("user")));
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-  return (<>
-  
-    <Router>
-       {user && <Navbar setUser={setUser} />}
-         <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900">
-        <h2 className="text-3xl font-bold text-center py-6 text-blue-700 drop-shadow-md">
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem("user", JSON.stringify({ uid: currentUser.uid, email: currentUser.email }));
+      } else {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
+      setLoading(false);
+    });
 
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center mt-10 text-lg font-semibold">Loading...</div>;
+  }
+
+  return (
+    <Router>
+      {user && <Navbar setUser={setUser} />}
+      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900">
+        <h2 className="text-3xl font-bold text-center py-6 text-blue-700 drop-shadow-md">
           Multi Todo List
         </h2>
         <Routes>
-          <Route path="/" element={<SignIn setUser={setUser} />} />
-         
-          <Route path="/signup" element={<SignUp/>}/>
-              
-                <Route path="/home" element={ <ProtectedRoute>
+          <Route path="/"  element={user ? <Navigate to="/home" /> : <SignIn setUser={setUser} />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute user={user}>
                 <Home />
-              </ProtectedRoute>}/>
-            <Route path="/add" element={ <ProtectedRoute>
-               <AddForm />
-              </ProtectedRoute>} /> 
-               <Route path="/profile" element={ <ProtectedRoute>
-               <Profile />
-              </ProtectedRoute>} /> 
-           
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add"
+            element={
+              <ProtectedRoute user={user}>
+                <AddForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute user={user}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
+        <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       </div>
-    </Router></>
+    </Router>
   );
 };
 

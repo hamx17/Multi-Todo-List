@@ -3,7 +3,7 @@ import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 
-export default function SignIn({setUser}) {
+export default function SignIn({ setUser }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -12,11 +12,22 @@ export default function SignIn({setUser}) {
     e.preventDefault();
     setLoading(true);
     try {
-       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-       const user = userCredential.user;
-        localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
-          setUser(user);
-      navigate("/Home");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+
+      const user = userCredential.user;
+
+      // Store user in localStorage
+      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
+
+      // Update App state
+      setUser(user);
+
+      // Redirect to Home
+      navigate("/home");
     } catch (error) {
       alert(error.message);
     } finally {
@@ -25,17 +36,15 @@ export default function SignIn({setUser}) {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex justify-center bg-gray-100 ">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white border border-gray-200 p-8 sm:p-10 rounded-xl shadow-lg"
       >
-        {/* Heading */}
         <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">
           Sign In to Your Account
         </h2>
 
-        {/* Email Input */}
         <input
           type="email"
           placeholder="Enter your email"
@@ -45,7 +54,6 @@ export default function SignIn({setUser}) {
           required
         />
 
-        {/* Password Input */}
         <input
           type="password"
           placeholder="Enter your password"
@@ -55,7 +63,6 @@ export default function SignIn({setUser}) {
           required
         />
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
@@ -68,14 +75,12 @@ export default function SignIn({setUser}) {
           {loading ? "Signing In..." : "Sign In"}
         </button>
 
-        {/* Divider */}
         <div className="flex items-center my-6">
           <div className="flex-1 border-t border-gray-300"></div>
           <span className="px-3 text-gray-400 text-sm">OR</span>
           <div className="flex-1 border-t border-gray-300"></div>
         </div>
 
-        {/* Go to Sign Up */}
         <p className="text-center text-gray-600 text-sm">
           Don't have an account?{" "}
           <Link
