@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { useDispatch } from "react-redux";
-import { addTaskThunk } from "../store/features/tasks/thunkSlice";
 import { nanoid } from "nanoid";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { addTaskThunk } from "../store/features/tasks/thunkSlice";
+import { auth } from "../firebase";
+import {  useSelector } from "react-redux";
+
 
 const AddTask = () => {
-  const dispatch = useDispatch();
+  
+  
   const navigate = useNavigate();
+   const dispatch = useDispatch();
+  const { tasks, status } = useSelector((state) => state.tasks);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -15,6 +21,8 @@ const AddTask = () => {
   const [subTasks, setSubTasks] = useState([
     { id: nanoid(), title: "", description: "", completed: false },
   ]);
+
+   
 
   const handleAddSubTask = () => {
     const last = subTasks[subTasks.length - 1];
@@ -38,11 +46,18 @@ const AddTask = () => {
     setSubTasks(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const user = auth.currentUser;
+    if (!user) {
+      toast.error("⚠️ Please sign in first!");
+      return;
+    }
 
     const newTask = {
       id: nanoid(),
+      userId: user.uid,
       title,
       description,
       date,
@@ -52,19 +67,24 @@ const AddTask = () => {
         .map((st) => ({ ...st, completed: false })),
     };
 
-    dispatch(addTaskThunk(newTask));
-    toast.success("✅ Task added successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "colored",
-    });
+    try {
+      await dispatch(addTaskThunk(newTask)).unwrap();
 
-    setTitle("");
-    setDescription("");
-    setDate("");
-    setSubTasks([{ id: nanoid(), title: "", description: "", completed: false }]);
+      toast.success("✅ Task added successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
 
-    navigate("/");
+      setTitle("");
+      setDescription("");
+      setDate("");
+      setSubTasks([{ id: nanoid(), title: "", description: "", completed: false }]);
+      navigate("/home");
+    } catch (error) {
+      console.error("Error adding task:", error);
+      toast.error("❌ Failed to add task");
+    }
   };
 
   return (
@@ -101,7 +121,6 @@ const AddTask = () => {
             required
           />
 
-          {/* Subtasks */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-800">Subtasks</h3>
             {subTasks.map((subTask, index) => (
@@ -130,7 +149,7 @@ const AddTask = () => {
             <button
               type="button"
               onClick={handleAddSubTask}
-              className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-black py-2 rounded-lg font-medium shadow-sm transition"
+              className="w-sm mt-2 bg-gray-200 hover:bg-gray-300 text-black py-2 rounded-lg font-medium shadow-sm transition"
             >
               + Add Subtask
             </button>

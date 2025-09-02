@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { updateTaskThunk, toggleSubTaskThunk } from "../store/features/tasks/thunkSlice";
+import {
+  updateTaskThunk,
+  toggleSubTaskThunk,
+} from "../store/features/tasks/thunkSlice";
 
 const TaskModal = ({ task, onClose }) => {
   const dispatch = useDispatch();
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
 
-  // ✅ Always get updated task from store
+  // Get latest task data from Redux
   const updatedTask = useSelector((state) =>
-    state.tasks.tasks.find((t) => t.id === task.id)
+    state.tasks.tasks.find((t) => t.docId === task.docId)
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -40,7 +43,7 @@ const TaskModal = ({ task, onClose }) => {
       return;
     }
 
-    dispatch(updateTaskThunk({ id: updatedTask.id, ...editedTask }));
+    dispatch(updateTaskThunk({ docId: updatedTask.docId, ...editedTask }));
     toast.success("✅ Task updated successfully!", {
       position: "top-center",
       autoClose: 2000,
@@ -92,7 +95,9 @@ const TaskModal = ({ task, onClose }) => {
             className="w-full px-3 py-2 rounded-lg bg-gray-100 text-gray-800 mb-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         ) : (
-          <h3 className="text-lg text-gray-800 font-semibold">{updatedTask.title}</h3>
+          <h3 className="text-lg text-gray-800 font-semibold">
+            {updatedTask.title}
+          </h3>
         )}
 
         {/* Description */}
@@ -125,7 +130,7 @@ const TaskModal = ({ task, onClose }) => {
         )}
 
         {/* Subtasks */}
-        {updatedTask.subTasks.length > 0 ? (
+        {updatedTask.subTasks && updatedTask.subTasks.length > 0 ? (
           <>
             <h3 className="text-lg font-semibold text-blue-600 mb-2">
               Subtasks:
@@ -151,7 +156,7 @@ const TaskModal = ({ task, onClose }) => {
                     onClick={() =>
                       dispatch(
                         toggleSubTaskThunk({
-                          taskId: updatedTask.id,
+                          taskId: updatedTask.docId,
                           subTaskId: sub.id,
                         })
                       )
