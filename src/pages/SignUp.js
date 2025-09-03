@@ -1,121 +1,116 @@
-import { useState } from "react";
-import { auth, db } from "../firebase";
+import React, { useState } from "react";
+import { auth, db, storage } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { useNavigate, Link } from "react-router-dom";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-export default function SignUp() {
-  const [form, setForm] = useState({ email: "", password: "", name: "", contact: "" });
-  const [loading, setLoading] = useState(false);
+export default function SignUp({ setSignupLoading }) {
+  const [form, setForm] = useState({ name: "", email: "", password: "", contact: "" });
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false); // ✅ Local loading state
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    setLoading(true);
+
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters long!");
+      return;
+    }
+
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      setSignupLoading(true);
+      setLoading(true);
 
-     await updateProfile(userCred.user, {
-  displayName: form.name,
-});
+      const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password);
 
-// Save user details to Firestore
-await setDoc(doc(db, "users", userCred.user.uid), {
-  name: form.name,
-  contact: form.contact,
-  email: form.email,
-  uid: userCred.user.uid,
-});
+      let imageURL = "";
+      if (image) {
+        const imgRef = ref(storage, `profileImages/${user.uid}`);
+        await uploadBytes(imgRef, image);
+        imageURL = await getDownloadURL(imgRef);
+      }
 
-      navigate("/Home");
+      await updateProfile(user, {
+        displayName: form.name,
+        photoURL: imageURL,
+      });
+
+      await setDoc(doc(db, "users", user.uid), {
+        name: form.name,
+        email: form.email,
+        contact: form.contact,
+        photoURL: imageURL,
+      });
+
+      toast.success("Account created successfully!");
+      navigate("/home");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     } finally {
+      setSignupLoading(false);
       setLoading(false);
     }
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex justify-center bg-gray-100 min-h-screen">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white border border-gray-200 p-8 sm:p-10 rounded-xl shadow-lg"
+        onSubmit={handleSignUp}
+        className="p-8 bg-white shadow-xl rounded-2xl w-[500px] md:w-[600px] lg:w-[650px] transition-all"
       >
-        {/* Heading */}
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">
-          Create Your Account
-        </h2>
+        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create Your Account</h2>
 
-        {/* Name Input */}
-        <input
-          type="text"
-          placeholder="Full Name"
-          className="w-full bg-white border border-gray-300 text-gray-800 px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Full Name"
+            className="border p-3 rounded-lg w-full"
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Contact"
+            className="border p-3 rounded-lg w-full"
+            onChange={(e) => setForm({ ...form, contact: e.target.value })}
+          />
+        </div>
 
-        {/* Contact Input */}
-        <input
-          type="text"
-          placeholder="Contact Number"
-          className="w-full bg-white border border-gray-300 text-gray-800 px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-          value={form.contact}
-          onChange={(e) => setForm({ ...form, contact: e.target.value })}
-          required
-        />
-
-        {/* Email Input */}
         <input
           type="email"
-          placeholder="Email Address"
-          className="w-full bg-white border border-gray-300 text-gray-800 px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-          value={form.email}
+          placeholder="Email"
+          className="border p-3 rounded-lg w-full mt-4"
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
-
-        {/* Password Input */}
         <input
           type="password"
-          placeholder="Create Password"
-          className="w-full bg-white border border-gray-300 text-gray-800 px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-6"
-          value={form.password}
+          placeholder="Password"
+          className="border p-3 rounded-lg w-full mt-4"
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
+        <input
+          type="file"
+          accept="image/*"
+          className="mt-4 w-full"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 rounded-lg font-semibold shadow-md transition-all duration-300 ${
+          className={`w-full mt-6 py-3 rounded-lg text-white text-lg font-semibold transition ${
             loading
-              ? "bg-gray-400 cursor-not-allowed text-gray-700"
-              : "bg-indigo-500 hover:bg-indigo-600 text-white"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
           {loading ? "Creating Account..." : "Sign Up"}
         </button>
-
-        {/* Divider */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-3 text-gray-400 text-sm">OR</span>
-          <div className="flex-1 border-t border-gray-300"></div>
-        </div>
-
-        {/* Go to Sign In */}
-        <p className="text-center text-gray-600 text-sm">
-          Already have an account?{" "}
-          <Link
-            to="/"
-            className="text-indigo-500 font-semibold hover:underline"
-          >
-            Sign In
-          </Link>
-        </p>
       </form>
     </div>
   );

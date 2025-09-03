@@ -2,6 +2,7 @@ import { useState } from "react";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function SignIn({ setUser }) {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -11,6 +12,7 @@ export default function SignIn({ setUser }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -20,24 +22,51 @@ export default function SignIn({ setUser }) {
 
       const user = userCredential.user;
 
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email,name:user.displayName }));
+      // Save user to localStorage
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          name: user.displayName,
+        })
+      );
 
-      // Update App state
+      // Update app state
       setUser(user);
-      console.log(user)
 
-      // Redirect to Home
-      navigate("/home");
+      // Success toast
+      toast.success("Signed in successfully!");
+
+      // Redirect to home
+      setTimeout(() => navigate("/home"), 1500);
     } catch (error) {
-      alert(error.message);
+      console.error("Firebase Auth Error:", error);
+
+      // Check for specific Firebase Auth errors
+      switch (error.code) {
+        case "auth/invalid-email":
+          toast.error(" Please enter a valid email.");
+          break;
+        case "auth/user-not-found":
+          toast.error("❌ No account found with this email. Please sign up first.");
+          break;
+        case "auth/wrong-password":
+          toast.error("❌ Incorrect password! Please try again.");
+          break;
+      
+        default:
+          toast.error("Invalid email and passwrod Please try again.");
+          break;
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex justify-center bg-gray-100">
+   <div className="min-h-screen w-full flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white border border-gray-200 p-8 sm:p-10 rounded-xl shadow-lg"

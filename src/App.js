@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route ,Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
 import Home from "./pages/Home";
 import AddForm from "./pages/AddForm";
 import { ToastContainer } from "react-toastify";
@@ -17,60 +16,65 @@ import Navbar from "./components/Navbar";
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [signupLoading, setSignupLoading] = useState(false); // ✅ NEW STATE
 
-  // Sync Firebase auth state
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-    const fetchUserName = async () => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        let name = currentUser.displayName;
-
-        if (!name) {
-          // Firestore se fetch karlo
+        try {
           const docRef = doc(db, "users", currentUser.uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
+
+          let name = currentUser.displayName;
+          if (!name && docSnap.exists()) {
             name = docSnap.data().name;
-          } else {
-            name = currentUser.email; // fallback
+          } else if (!name) {
+            name = currentUser.email;
           }
+
+          setUser({ ...currentUser, displayName: name });
+
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              uid: currentUser.uid,
+              email: currentUser.email,
+              name,
+            })
+          );
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+          setUser(currentUser);
         }
-
-        setUser({ ...currentUser, displayName: name });
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            uid: currentUser.uid,
-            email: currentUser.email,
-            name,
-          })
-        );
       } else {
         setUser(null);
         localStorage.removeItem("user");
       }
-      setLoading(false); // ✅ loading false here
-    };
+      setLoading(false);
+    });
 
-    fetchUserName();
-  });
-
-  return () => unsubscribe();
-}, []);
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
-    return <div className="text-center mt-10 text-lg font-semibold">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-lg font-semibold">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <Router>
-      {user && <Navbar setUser={setUser} user={user}/>}
+      {/* ✅ Navbar tab tak show NAHI hogi jab tak signup complete nahi hota */}
+      {user && !signupLoading && <Navbar setUser={setUser} user={user} />}
       <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900">
-        
         <Routes>
-          <Route path="/"  element={user ? <Navigate to="/home" /> : <SignIn setUser={setUser} />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route
+            path="/"
+            element={user ? <Navigate to="/home" /> : <SignIn setUser={setUser} />}
+          />
+          <Route path="/signup" element={<SignUp setSignupLoading={setSignupLoading} />} />
           <Route
             path="/home"
             element={
