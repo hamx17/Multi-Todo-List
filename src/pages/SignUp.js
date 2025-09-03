@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -15,13 +15,17 @@ export default function SignUp() {
     try {
       const userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
 
-      // Save user details to Firestore
-      await setDoc(doc(db, "users", userCred.user.uid), {
-        name: form.name,
-        contact: form.contact,
-        email: form.email,
-        uid: userCred.user.uid,
-      });
+     await updateProfile(userCred.user, {
+  displayName: form.name,
+});
+
+// Save user details to Firestore
+await setDoc(doc(db, "users", userCred.user.uid), {
+  name: form.name,
+  contact: form.contact,
+  email: form.email,
+  uid: userCred.user.uid,
+});
 
       navigate("/Home");
     } catch (error) {

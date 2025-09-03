@@ -1,18 +1,14 @@
-import React, { useState, useEffect  } from "react";
-import { useDispatch } from "react-redux";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { nanoid } from "nanoid";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { addTaskThunk } from "../store/features/tasks/thunkSlice";
 import { auth } from "../firebase";
-import {  useSelector } from "react-redux";
-
 
 const AddTask = () => {
-  
-  
   const navigate = useNavigate();
-   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { tasks, status } = useSelector((state) => state.tasks);
 
   const [title, setTitle] = useState("");
@@ -22,7 +18,7 @@ const AddTask = () => {
     { id: nanoid(), title: "", description: "", completed: false },
   ]);
 
-   
+  const [loading, setLoading] = useState(false); // loader state
 
   const handleAddSubTask = () => {
     const last = subTasks[subTasks.length - 1];
@@ -68,14 +64,16 @@ const AddTask = () => {
     };
 
     try {
+      setLoading(true); // start loader
       await dispatch(addTaskThunk(newTask)).unwrap();
 
-      toast.success("✅ Task added successfully!", {
+      toast.success("Task added successfully!", {
         position: "top-right",
         autoClose: 3000,
         theme: "colored",
       });
 
+      // reset form
       setTitle("");
       setDescription("");
       setDate("");
@@ -83,7 +81,9 @@ const AddTask = () => {
       navigate("/home");
     } catch (error) {
       console.error("Error adding task:", error);
-      toast.error("❌ Failed to add task");
+      toast.error("Failed to add task");
+    } finally {
+      setLoading(false); // stop loader
     }
   };
 
@@ -95,23 +95,26 @@ const AddTask = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Title */}
           <input
             type="text"
             placeholder="Task Title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value.slice(0, 70))}
             className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
             required
           />
 
+          {/* Description */}
           <textarea
             placeholder="Task Description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black min-h-[120px]"
+            onChange={(e) => setDescription(e.target.value.slice(0, 300))}
+            className="w-full bg-white border border-gray-300 text-black px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black h-[100px] resize-none overflow-y-auto"
             required
           />
 
+          {/* Due Date */}
           <input
             type="date"
             value={date}
@@ -121,6 +124,7 @@ const AddTask = () => {
             required
           />
 
+          {/* Subtasks */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-800">Subtasks</h3>
             {subTasks.map((subTask, index) => (
@@ -130,7 +134,7 @@ const AddTask = () => {
                   placeholder="Subtask Title"
                   value={subTask.title}
                   onChange={(e) =>
-                    handleSubTaskChange(index, "title", e.target.value)
+                    handleSubTaskChange(index, "title", e.target.value.slice(0, 70))
                   }
                   className="flex-1 bg-white border border-gray-300 text-black px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
@@ -139,7 +143,7 @@ const AddTask = () => {
                   placeholder="Subtask Description"
                   value={subTask.description}
                   onChange={(e) =>
-                    handleSubTaskChange(index, "description", e.target.value)
+                    handleSubTaskChange(index, "description", e.target.value.slice(0, 300))
                   }
                   className="flex-1 bg-white border border-gray-300 text-black px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
@@ -149,18 +153,21 @@ const AddTask = () => {
             <button
               type="button"
               onClick={handleAddSubTask}
-              className="w-sm mt-2 bg-gray-200 hover:bg-gray-300 text-black py-2 rounded-lg font-medium shadow-sm transition"
+              className="w-fit mt-2 bg-gray-200 hover:bg-gray-300 text-black py-2 px-4 rounded-lg font-medium shadow-sm transition"
             >
-              + Add Subtask
+              +
             </button>
           </div>
 
+          {/* Submit Button */}
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-lg font-semibold shadow-md transition-all duration-300"
+              disabled={loading} // disable when loading
+              className={`w-full sm:w-1/2 text-white py-2 rounded-lg font-semibold shadow-md transition-all duration-300
+                ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
             >
-              Add Task
+              {loading ? "Adding..." : "Add Task"}
             </button>
           </div>
         </form>

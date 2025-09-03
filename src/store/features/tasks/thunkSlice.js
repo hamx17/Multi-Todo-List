@@ -68,19 +68,21 @@ export const updateTaskThunk = createAsyncThunk(
 
     const docRef = doc(db, "tasks", updatedTask.docId);
 
-    // ✅ Sirf title, description, date update karo, subTasks same rahengi
+    // ✅ Update main task fields AND subtasks
     await updateDoc(docRef, {
       title: updatedTask.title,
       description: updatedTask.description,
       date: updatedTask.date,
+      subTasks: updatedTask.subTasks,
     });
 
-    // ✅ Return updated task with subtasks preserved
+    // ✅ Return updated task including subtasks
     return {
       ...existingTask,
       title: updatedTask.title,
       description: updatedTask.description,
       date: updatedTask.date,
+      subTasks: updatedTask.subTasks,
     };
   }
 );

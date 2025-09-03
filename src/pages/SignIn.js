@@ -21,10 +21,11 @@ export default function SignIn({ setUser }) {
       const user = userCredential.user;
 
       // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
+      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email,name:user.displayName }));
 
       // Update App state
       setUser(user);
+      console.log(user)
 
       // Redirect to Home
       navigate("/home");
