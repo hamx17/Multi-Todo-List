@@ -23,7 +23,7 @@ const Navbar = ({ setUser, user }) => {
         className="font-bold text-xl cursor-pointer"
         onClick={() => navigate("/home")}
       >
-        MultiTodo List
+      Multi Todo App
       </div>
 
       {/* Center: Home + Add Form */}

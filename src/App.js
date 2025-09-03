@@ -16,7 +16,7 @@ import Navbar from "./components/Navbar";
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [signupLoading, setSignupLoading] = useState(false); // ✅ NEW STATE
+  const [signupLoading, setSignupLoading] = useState(false); 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -66,7 +66,7 @@ const App = () => {
 
   return (
     <Router>
-      {/* ✅ Navbar tab tak show NAHI hogi jab tak signup complete nahi hota */}
+     
       {user && !signupLoading && <Navbar setUser={setUser} user={user} />}
       <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900">
         <Routes>

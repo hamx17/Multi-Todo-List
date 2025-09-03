@@ -49,10 +49,10 @@ export default function SignIn({ setUser }) {
           toast.error(" Please enter a valid email.");
           break;
         case "auth/user-not-found":
-          toast.error("❌ No account found with this email. Please sign up first.");
+          toast.error(" No account found with this email. Please sign up first.");
           break;
         case "auth/wrong-password":
-          toast.error("❌ Incorrect password! Please try again.");
+          toast.error("s Incorrect password! Please try again.");
           break;
       
         default:

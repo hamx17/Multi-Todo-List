@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 export default function SignUp({ setSignupLoading }) {
   const [form, setForm] = useState({ name: "", email: "", password: "", contact: "" });
   const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState(false); // ✅ Local loading state
+  const [loading, setLoading] = useState(false); 
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
